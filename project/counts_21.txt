@@ -1,6 +1,0 @@
-and 2
-#AMOUNT 1
-much 1
-chocolate 1
-into 1
-topping 1

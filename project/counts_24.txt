@@ -1,2 +1,0 @@
-frozen 1
-unflavored 1
