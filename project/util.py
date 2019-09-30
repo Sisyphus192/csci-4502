@@ -133,12 +133,16 @@ def get_ingredient_unit(parsed_ingredient, ingredient):
                 parsed_ingredient.remove(word)
                 break
 
-    # check if first word in array is "or", then ingredient has 2 possible units
-    if parsed_ingredient[0] == "or":
-        plural_unit = in_checking_plurals(parsed_ingredient[1], MEASUREMENT_UNITS)
-        if plural_unit:
-            unit_string += " " + parsed_ingredient[0] + " " + plural_unit
-            parsed_ingredient = parsed_ingredient[2:]
+    try:
+        # check if first word in array is "or", then ingredient has 2 possible units
+        if parsed_ingredient[0] == "or":
+            plural_unit = in_checking_plurals(parsed_ingredient[1], MEASUREMENT_UNITS)
+            if plural_unit:
+                unit_string += " " + parsed_ingredient[0] + " " + plural_unit
+                parsed_ingredient = parsed_ingredient[2:]
+    except IndexError:
+        print("Parsing error with: ", ingredient["index"], ingredient["title"])
+        return ingredient, parsed_ingredient
 
     # delete "of" at first index, ie "1 cup of milk" -> "1 cup milk"
     if parsed_ingredient[0] == "of":
@@ -197,10 +201,13 @@ def get_ingredient_descriptions(parsed_ingredient, ingredient):
     while "style" in parsed_ingredient:
         parsed_ingredient.remove("style")
 
-    # remove "or" if last word
-    if parsed_ingredient[-1] == "or":
-        del parsed_ingredient[-1]
-
+    try:
+        # remove "or" if last word
+        if parsed_ingredient[-1] == "or":
+            del parsed_ingredient[-1]
+    except IndexError:
+        print("Parsing error with: ", ingredient["index"], ingredient["title"])
+        return ingredient, parsed_ingredient
     # replace hyphenated prefixes and suffixes
     for word in parsed_ingredient:
         for hypenated_suffix in HYPENATED_SUFFIXES:
@@ -268,7 +275,6 @@ def parse_ingredient_list(recipe_index, recipe_title, ingredient_list):
     if isinstance(ingredient_list, list):
         ingredients = []
         for ingredient_string in ingredient_list:
-
             # check if not ingredient, but separator
             # e.g. "For Bread:"
             if is_seperator(ingredient_string):
