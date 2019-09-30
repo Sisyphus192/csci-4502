@@ -4,6 +4,7 @@ tables. Some code adapted from https://github.com/kbrohkahn/recipe-parser.
 """
 
 import re
+from fractions import Fraction
 
 
 def equal_checking_plurals(string, plural_string):
@@ -51,9 +52,9 @@ def is_number(string):
     .isnumeric() does not identify floats
     """
     try:
-        float(string)
+        num = Fraction(string)
         return True
-    except ValueError:
+    except (ValueError, SyntaxError):
         return False
 
 
@@ -88,10 +89,6 @@ def is_seperator(ingredient_string):
 def get_ingredient_amount(parsed_ingredient, ingredient):
     ingredient["amount"] = 0
     while parsed_ingredient:
-        # check if current word is number of inches, not amount
-        if len(parsed_ingredient) > 1 and parsed_ingredient[1] == "inch":
-            break
-
         # get first word
 
         # if first word is digit or fraction, eval
@@ -266,6 +263,16 @@ def get_ingredient(parsed_ingredient, ingredient):
     ingredient_string = ingredient_string.replace("salad dressing", "dressing")
     ingredient_string = ingredient_string.replace("bourbon whiskey", "bourbon")
     ingredient_string = ingredient_string.replace("pudding mix", "pudding")
+    ingredient_string = ingredient_string.replace("soup mix", "soup")
+
+    # move flavors to description
+    if "flavored" in ingredient_string:
+        ingredient_string = ingredient_string.split()
+        for idx, word in ingredient_string:
+            if word == "flavored":
+                ingredient["description"].append(" ".join(ingredient_string[:idx+1]))
+                ingredient_string = " ".join(ingredient_string[idx+1,:])
+                break
 
     ingredient["ingredient"] = ingredient_string
     return ingredient
@@ -284,11 +291,20 @@ def parse_ingredient_list(recipe_index, recipe_title, ingredient_list):
             ingredient["title"] = recipe_title
             ingredient["descriptions"] = []
             ingredient["index"] = recipe_index
+            ingredient["unit"] = None
 
-            # remove trademark symbol
+            # remove trademark symbols
             ingredient_string = ingredient_string.replace("\u00ae", "")
             ingredient_string = ingredient_string.replace("(TM)", "")
+            ingredient_string = ingredient_string.replace("™", "")
+
+            # convert fluid ouces to one token
             ingredient_string = ingredient_string.replace("fluid ounce", "fluid_ounce")
+
+            # remove "or more to taste"
+            ingredient_string = ingredient_string.replace("or more to taste", "")
+            ingredient_string = ingredient_string.replace("or to taste", "")
+            ingredient_string = ingredient_string.replace("to taste", "")
 
             # move parentheses to description
             while True:
@@ -346,6 +362,16 @@ def parse_ingredient_list(recipe_index, recipe_title, ingredient_list):
             # get ingredient
             ingredient = get_ingredient(parsed_ingredient, ingredient)
             ingredients.append(ingredient)
+
+            if ingredient["unit"] in CONTAINERS and ingredient["descriptions"]:
+                for idx, desc in enumerate(ingredient["descriptions"]):
+                    desc = desc.split()
+                    if len(desc) == 2:
+                        plural_unit = in_checking_plurals(desc[1], MEASUREMENT_UNITS)
+                        if plural_unit and any(i.isdigit() for i in desc[0]):
+                            ingredient["unit"] = plural_unit
+                            ingredient["amount"] *= eval(desc[0])
+                            del ingredient["descriptions"][idx]
         return ingredients
     else:
         return recipe_index, recipe_title, None
@@ -478,6 +504,7 @@ DESCRIPTIONS = [
     "chopped",
     "cleaned",
     "coarse",
+    "condensed",
     "cold",
     "cooked",
     "cool",
