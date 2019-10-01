@@ -1,0 +1,3 @@
+[submodule "project/recipe-box"]
+	path = project/recipe-box
+	url = git@github.com:eldaromer/recipe-box.git
