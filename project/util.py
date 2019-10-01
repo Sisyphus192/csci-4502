@@ -266,12 +266,12 @@ def get_ingredient(parsed_ingredient, ingredient):
     ingredient_string = ingredient_string.replace("soup mix", "soup")
 
     # move flavors to description
-    if "flavored" in ingredient_string:
+    if " flavored " in ingredient_string:
         ingredient_string = ingredient_string.split()
-        for idx, word in ingredient_string:
+        for idx, word in enumerate(ingredient_string):
             if word == "flavored":
-                ingredient["description"].append(" ".join(ingredient_string[:idx+1]))
-                ingredient_string = " ".join(ingredient_string[idx+1,:])
+                ingredient["descriptions"].append(" ".join(ingredient_string[:idx+1]))
+                ingredient_string = " ".join(ingredient_string[idx+1:])
                 break
 
     ingredient["ingredient"] = ingredient_string
@@ -433,6 +433,7 @@ MEASUREMENT_UNITS = [
     "halves",
     "scoops",
     "inches",
+    "jiggers"
 ]
 
 # Dict to lookup common abreviations of measurements
