@@ -1,0 +1,17 @@
+-------------------- Auto-Git Log --------------------
+		Sat Nov 02 2019 21:51:25 GMT-0600 (Mountain Daylight Time)
+------------------------------------------------------
+
+Modified files:
+* "project/Data Parsing.ipynb"
+* project/correlation.ipynb
+
+
+Created files:
+* .autogit/autogit.json
+
+
+Deleted files:
+
+
+Renamed files:
